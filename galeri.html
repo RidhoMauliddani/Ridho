@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Galeri Kita</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: linear-gradient(180deg,#fff0f6,#fff); -webkit-font-smoothing: antialiased; opacity:0; animation:fadeIn .6s forwards; }
+    @keyframes fadeIn { to { opacity:1 } }
+  </style>
+</head>
+<body class="p-6 min-h-screen">
+
+  <!-- Persistent Music -->
+  <iframe id="musicPlayer" src="music.html" style="display:none;"></iframe>
+  <button id="toggleBtn" class="fixed bottom-6 right-6 bg-pink-600 text-white rounded-full shadow-lg px-4 py-2 z-50">Jeda Musik</button>
+
+  <!-- Navbar -->
+  <nav class="fixed top-4 left-0 right-0 flex justify-center z-40">
+    <div class="bg-white/60 glass rounded-full px-4 py-2 shadow-md flex gap-6">
+      <a href="index.html" class="text-pink-600 font-semibold hover:text-pink-700">Beranda</a>
+      <a href="galeri.html" class="text-pink-600 font-semibold hover:text-pink-700">Galeri</a>
+      <a href="ungkapan-perasaan.html" class="text-pink-600 font-semibold hover:text-pink-700">Pesan</a>
+    </div>
+  </nav>
+  <div class="h-16"></div>
+
+  <main class="max-w-5xl mx-auto">
+
+    <h1 class="text-3xl text-pink-700 font-bold text-center">Album Foto Kita</h1>
+
+    <!-- Slideshow -->
+    <div class="relative mt-6 rounded-xl shadow-lg bg-white p-4 overflow-hidden h-[500px]">
+      <div id="slides" class="flex transition-transform duration-500 ease-in-out">
+        <img class="slide w-full h-[500px] object-cover rounded-lg flex-shrink-0" src="foto/fotokita.jpeg" alt="">
+        <img class="slide w-full h-[500px] object-cover rounded-lg flex-shrink-0" src="foto/fotokita2.jpeg" alt="">
+        <img class="slide w-full h-[500px] object-cover rounded-lg flex-shrink-0" src="foto/fotokita3.jpeg" alt="">
+        <img class="slide w-full h-[500px] object-cover rounded-lg flex-shrink-0" src="foto/fotoadel.jpeg" alt="">
+        <img class="slide w-full h-[500px] object-cover rounded-lg flex-shrink-0" src="foto/fotokita4.jpeg" alt="">
+      </div>
+      <button id="prev" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow">‹</button>
+      <button id="next" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow">›</button>
+      <div class="mt-3 text-center">
+        <div id="dots" class="inline-flex items-center"></div>
+      </div>
+    </div>
+
+    <!-- Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-8">
+      <img class="w-full h-60 object-cover rounded cursor-pointer" src="foto/fotokita.jpeg" alt="">
+      <img class="w-full h-60 object-cover rounded cursor-pointer" src="foto/fotokita2.jpeg" alt="">
+      <img class="w-full h-60 object-cover rounded cursor-pointer" src="foto/fotokita3.jpeg" alt="">
+      <img class="w-full h-60 object-cover rounded cursor-pointer" src="foto/fotoadel.jpeg" alt="">
+      <img class="w-full h-60 object-cover rounded cursor-pointer" src="foto/fotokita4.jpeg" alt="">
+      <img class="w-full h-60 object-cover rounded cursor-pointer" src="foto/fotokita5.jpeg" alt="">
+      <img class="w-full h-60 object-cover rounded cursor-pointer" src="foto/fotokita6.jpeg" alt="">
+      <img class="w-full h-60 object-cover rounded cursor-pointer" src="foto/fotoadel.jpeg" alt="">
+    </div>
+
+  </main>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="fixed inset-0 hidden items-center justify-center bg-black/70 z-50 p-4">
+    <img id="lbImg" src="" class="max-w-full max-h-full rounded shadow-lg" />
+  </div>
+
+<script>
+  // Persistent Music
+  const player = document.getElementById('musicPlayer');
+  function post(msg){ player.contentWindow && player.contentWindow.postMessage(msg,'*'); }
+  document.getElementById('toggleBtn').addEventListener('click', () => post({type:'toggle'}));
+  document.addEventListener('click', ()=> post({type:'play'}), {once:true});
+  window.addEventListener('message', ev => {
+    const d = ev.data; if(!d || d.type !== 'status') return;
+    document.getElementById('toggleBtn').textContent = d.paused ? 'Putar Musik' : 'Jeda Musik';
+  });
+
+  // Slideshow
+  const slidesEl = document.getElementById('slides');
+  const slides = Array.from(slidesEl.querySelectorAll('img'));
+  let idx = 0;
+
+  function showSlide(i){
+    idx = (i + slides.length) % slides.length;
+    const w = slides[0].clientWidth;
+    slidesEl.style.transform = `translateX(${-idx * w}px)`;
+    updateDots();
+  }
+
+  document.getElementById('prev').addEventListener('click', ()=> { showSlide(idx-1); resetAutoSlide(); });
+  document.getElementById('next').addEventListener('click', ()=> { showSlide(idx+1); resetAutoSlide(); });
+
+  const dotsEl = document.getElementById('dots');
+  slides.forEach((_, i)=>{
+    const d = document.createElement('span');
+    d.className='dot';
+    d.addEventListener('click', ()=> { showSlide(i); resetAutoSlide(); });
+    dotsEl.appendChild(d);
+  });
+  function updateDots(){ Array.from(dotsEl.children).forEach((d,i)=> d.classList.toggle('active', i===idx)); }
+
+  window.addEventListener('resize', ()=> showSlide(idx));
+  window.addEventListener('load', ()=> showSlide(0));
+
+  // Auto-slideshow
+  let autoSlideInterval = setInterval(()=> showSlide(idx+1), 4000);
+  function resetAutoSlide(){
+    clearInterval(autoSlideInterval);
+    autoSlideInterval = setInterval(()=> showSlide(idx+1), 4000);
+  }
+
+  // Lightbox
+  document.querySelectorAll('img').forEach(img=>{
+    img.addEventListener('click', e=>{
+      if(e.target.closest('button')) return;
+      document.getElementById('lbImg').src = img.src;
+      document.getElementById('lightbox').classList.remove('hidden');
+    });
+  });
+  document.getElementById('lightbox').addEventListener('click', ()=> document.getElementById('lightbox').classList.add('hidden'));
+
+  // Swipe
+  let startX=null;
+  slidesEl.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+  slidesEl.addEventListener('touchend', e => {
+    if(startX===null) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    if(dx > 40) showSlide(idx-1);
+    else if(dx < -40) showSlide(idx+1);
+    startX=null;
+  });
+</script>
+
+</body>
+</html>
