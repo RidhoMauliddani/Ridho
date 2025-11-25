@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Untukmu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{background:linear-gradient(180deg,#fff6fb,#fff); -webkit-font-smoothing:antialiased;}
+    .glass{background:rgba(255,255,255,0.78);backdrop-filter:blur(6px);}
+    .typewriter{white-space:pre-line}
+    .heart-float{position:fixed;pointer-events:none;z-index:60;font-size:18px;animation:floatUp 3.8s linear forwards;opacity:0.95;}
+    @keyframes floatUp{0%{transform:translateY(0) scale(.9);opacity:1}100%{transform:translateY(-160px) scale(1.4);opacity:0}}
+    body{opacity:0;animation:fadeIn .6s forwards}
+    @keyframes fadeIn{to{opacity:1}}
+  </style>
+</head>
+<body class="min-h-screen p-6">
+
+  <iframe id="musicPlayer" src="music.html" style="display:none;"></iframe>
+
+  <nav class="fixed top-4 left-0 right-0 flex justify-center z-40">
+    <div class="bg-white/60 glass rounded-full px-4 py-2 shadow-md flex gap-6">
+      <a href="index.html" class="text-pink-600 font-semibold hover:text-pink-700">Beranda</a>
+      <a href="galeri.html" class="text-pink-600 font-semibold hover:text-pink-700">Galeri</a>
+      <a href="ungkapan-perasaan.html" class="text-pink-600 font-semibold hover:text-pink-700">Pesan</a>
+    </div>
+  </nav>
+  <div class="h-16"></div>
+
+  <main class="max-w-3xl mx-auto glass rounded-2xl p-8 shadow-lg">
+    <header class="flex items-center gap-4 mb-4">
+      <div class="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center text-2xl">💗</div>
+      <div>
+        <h1 class="text-2xl font-bold text-pink-700">Untukmu</h1>
+        <p class="text-sm text-gray-600">Sebuah pesan dari Ridho</p>
+      </div>
+    </header>
+
+    <div class="typewriter text-gray-800 text-lg leading-relaxed mb-6" id="intro">
+      Klik "Buka Surat" untuk membaca pesan yang aku tulis pelan.
+    </div>
+
+    <div class="flex gap-3">
+      <button id="openLetter" class="px-4 py-2 bg-pink-600 text-white rounded-lg">Buka Surat</button>
+      <button id="spawnHeart" class="px-4 py-2 bg-pink-100 rounded-lg">Tampilkan Heart</button>
+      <button id="toggleMusic" class="px-4 py-2 bg-white border rounded-lg">Jeda / Putar Musik</button>
+    </div>
+  </main>
+
+  <!-- surat modal -->
+  <div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black/50 z-50 p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-2xl w-full shadow-xl">
+      <h2 class="text-xl font-bold text-pink-700 mb-3">Surat Untukmu</h2>
+      <div id="letter" class="typewriter text-gray-800 leading-relaxed"></div>
+      <div class="mt-4 flex justify-end gap-3">
+        <button id="closeModal" class="px-4 py-2 bg-gray-100 rounded">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // message helper to persistent music iframe
+    const player = document.getElementById('musicPlayer');
+    function post(msg){ player.contentWindow && player.contentWindow.postMessage(msg,'*'); }
+
+    // toggle music
+    document.getElementById('toggleMusic').addEventListener('click', ()=> post({type:'toggle'}));
+
+    // heart spawn
+    document.getElementById('spawnHeart').addEventListener('click', ()=> {
+      for(let i=0;i<12;i++){
+        const h=document.createElement('div'); h.className='heart-float';
+        h.style.left=(10+Math.random()*80)+'vw';
+        h.innerHTML=['💗','🌸','💞'][Math.floor(Math.random()*3)];
+        document.body.appendChild(h); setTimeout(()=>h.remove(),4200);
+      }
+    });
+
+    // typewriter long letter
+    const longText = `Hai Adillah Suroyyah Fuadi,
+
+Ini bukan pesan yang dibuat tergesa-gesa...
+Sejak aku mulai mengenalmu, ada banyak hal kecil yang membuat hariku berbeda. Mungkin sekarang hari-hariku
+mulai kembali berwarna setelah aku mengenalmu, sebenarnya ini bukan hal yang direncanakan, tapi punya rasa
+ke kamu merupakan hal yang paling aku suka banget ditahun ini, setelah melewati masa yang cukup bikin frustrasi akhirnya
+aku menemukan seseorang sepertimu. Aku tidak ingin terburu-buru. Aku ingin pelan, jujur, dan tulus. tapi aku ingin selalu
+terus bersamamu, semoga kita bisa terus selamanya dan semoga bukan hanya semoga, semuanya mendukung apa yang kita impikan
+
+— Ridho
+`;
+    async function typeInto(el, text, speed=25){
+      el.textContent=''; for(let i=0;i<text.length;i++){ el.textContent += text[i]; await new Promise(r=>setTimeout(r,speed)); }
+    }
+
+    document.getElementById('openLetter').addEventListener('click', async ()=>{
+      document.getElementById('modal').classList.remove('hidden');
+      await typeInto(document.getElementById('letter'), longText, 18);
+      // gently trigger a rain effect
+      setTimeout(()=>{ for(let i=0;i<20;i++){ const h=document.createElement('div'); h.className='heart-float'; h.style.left=(5+Math.random()*90)+'vw'; h.innerHTML='💗'; document.body.appendChild(h); setTimeout(()=>h.remove(),4200);} }, 400);
+      // ensure music starts if allowed
+      post({type:'play'});
+    });
+
+    document.getElementById('closeModal').addEventListener('click', ()=> document.getElementById('modal').classList.add('hidden'));
+
+    // ensure play after user interaction for autoplay policies
+    document.addEventListener('click', ()=> post({type:'play'}), {once:true});
+  </script>
+</body>
+</html>

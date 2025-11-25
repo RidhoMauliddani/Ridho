@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Music Player</title>
+  <style>body{margin:0;background:transparent}</style>
+</head>
+<body>
+  <audio id="bgm" loop>
+    <source src="music/bergemasampaiselamanya (online-audio-converter.com).ogg" type="audio/ogg">
+  </audio>
+
+  <script>
+    const audio = document.getElementById('bgm');
+
+    // Try autoplay after user interaction (some browsers block)
+    document.addEventListener('click', () => audio.play().catch(()=>{}), {once:true});
+
+    // listen to parent messages to control player
+    window.addEventListener('message', (ev) => {
+      try {
+        const msg = ev.data;
+        if (!msg || !msg.type) return;
+        if (msg.type === 'play') audio.play().catch(()=>{});
+        if (msg.type === 'pause') audio.pause();
+        if (msg.type === 'toggle') audio.paused ? audio.play().catch(()=>{}) : audio.pause();
+        if (msg.type === 'setVolume') audio.volume = Number(msg.value) || 1;
+      } catch(e){}
+    }, false);
+
+    // send status to parent occasionally
+    function postStatus(){
+      parent.postMessage({type:'status', paused: audio.paused, currentTime: audio.currentTime}, '*');
+    }
+    audio.addEventListener('play', postStatus);
+    audio.addEventListener('pause', postStatus);
+    setInterval(postStatus, 2500);
+  </script>
+</body>
+</html>
